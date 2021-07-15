@@ -39,9 +39,15 @@
   (and (consp form)
        (keywordp (car form))))
 
+(defun tag-name (tag)
+  (let ((s (symbol-name tag)))
+    (if (string= s (string-upcase s))
+        (string-downcase s)
+        s)))
+
 (defun parse-tag (tag)
   (values
-   (pop tag)
+   (tag-name (pop tag))
    (loop while (and tag (keywordp (car tag)))
          collect (pop tag)
          collect (pop tag))
@@ -62,7 +68,7 @@
   (multiple-value-bind (name attr-plist body)
       (parse-tag tag)
     (nconc
-     (list (format nil "<~(~A~)" name))
+     (list (format nil "<~A" name))
      (let ((attr-str (attributes->string attr-plist)))
        (if attr-str (cons " " attr-str)))
      (if body
@@ -72,7 +78,7 @@
                         append (tag->string elem)
                       else
                         collect (%dirty-string-form elem))
-                (list (format nil "</~(~A~)>" name)))
+                (list (format nil "</~A>" name)))
          (if (or (eq *markup-language* :html)
                  (eq *markup-language* :html5))
              (list ">")
